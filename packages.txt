@@ -1,2 +1,1 @@
-default-jdk
-default-jre
+default-jre-headless
