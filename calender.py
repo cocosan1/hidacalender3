@@ -21,7 +21,7 @@ next_year = (datetime.date.today() + relativedelta(years=1)).year
 # 会社特有の休日
 company_holiday_shukka = [ 
 
-    '2023/12/26', '2023/12/27', '2023/12/28',\
+   '2023/12/28',\
     '2023/12/29', '2023/12/30', '2023/12/31',\
     '2024/1/1', '2024/1/2', '2024/1/3', '2024/1/4', '2024/1/5', '2024/1/6',
     '2024/4/27', '2024/4/30', '2024/5/1', '2024/5/2',
@@ -33,7 +33,7 @@ with st.expander('会社の休日設定', expanded=False):
 
 company_holiday_chakubi = [
 
-    '2023/12/26', '2023/12/27', '2023/12/28',\
+    '2023/12/28',\
     '2023/12/29', '2023/12/30', '2023/12/31',\
     '2024/1/1', '2024/1/2', '2024/1/3', '2024/1/4', '2024/1/5', '2024/1/6',
     '2024/4/27', '2024/4/30', '2024/5/1', '2024/5/2',
@@ -233,11 +233,22 @@ def generate_pdf_noncol():
     df_calend = df[0]
     #カラムを絞る
     # df_calend = df_calend.drop('KX250AX\rKX260AX', axis=1)
+
+    # カレンダーの範囲指定
+    start_day = st.selectbox('カレンダーの範囲の開始日', df_calend['Unnamed: 0'], key='s_day')
+    end_day = st.selectbox('カレンダーの範囲の終了日', df_calend['Unnamed: 0'], key='e_day')
+    
+    index_start_day = df_calend[df_calend['Unnamed: 0'] == start_day].index[0]
+    index_end_day = df_calend[df_calend['Unnamed: 0'] == end_day].index[0]
+    df_calend = df_calend.loc[index_start_day:index_end_day]
     
     df_calend = df_calend.drop(df_calend.columns[[1, 5, 6, 7]], axis=1) #40日から右カラムの削除
     df_calend = df_calend.dropna(how='any')
     df_calend = df_calend.rename(columns={'Unnamed: 0': '受注日'})
     df_calend = df_calend.loc[1:] #0行目受注日という文字列が入っている
+
+    with st.expander('絞り込み後', expanded=False):
+        st.write(df_calend)
 
 
     #曜日を消す
@@ -263,7 +274,7 @@ def generate_pdf_noncol():
 
     #todayより前のものは年を来年に変換
     for col in cols_nonex:
-        df_calend[col] = df_calend[col].map(lambda x: x + relativedelta(years=1) if x < today2 else x)
+        df_calend[col] = df_calend[col].map(lambda x: x + relativedelta(years=1) if x < today2+ relativedelta(days=-10) else x)
 
     #　str型へ　時間を消す
     # Series型にはdtというアクセサが提供されており、Timestamp型を含む日時型の要素から、
